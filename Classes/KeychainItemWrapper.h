@@ -1,9 +1,8 @@
 /*
  
- File: EditorController.h
+ File: KeychainItemWrapper.h
  
- Abstract: Controller class for the two editing views. Abstracts the interaction with
-	text field and text view for the main controller.
+ Abstract: Objective-C wrapper for accessing a single keychain item.
  
  Version: 1.1
  
@@ -51,22 +50,26 @@
 
 #import <UIKit/UIKit.h>
 
-@class KeychainItemWrapper;
-
-@interface EditorController : UIViewController
+/*
+    The KeychainItemWrapper class is an abstraction layer for the iPhone Keychain communication. It is merely a 
+    simple wrapper to provide a distinct barrier between all the idiosyncracies involved with the Keychain
+    CF/NS container objects.
+*/
+@interface KeychainItemWrapper : NSObject
 {
-    NSString *textValue;
-    NSString *editedFieldKey;
-    id textControl;
-    KeychainItemWrapper *keychainItemWrapper;
+    NSMutableDictionary *keychainItemData;		// The actual keychain item data backing store.
+    NSMutableDictionary *genericPasswordQuery;	// A placeholder for the generic keychain item query used to locate the item.
 }
 
-@property (nonatomic, retain) NSString *textValue;
-@property (nonatomic, retain) NSString *editedFieldKey;
-@property (nonatomic, retain) IBOutlet id textControl;
-@property (nonatomic, retain) KeychainItemWrapper *keychainItemWrapper;
+@property (nonatomic, retain) NSMutableDictionary *keychainItemData;
+@property (nonatomic, retain) NSMutableDictionary *genericPasswordQuery;
 
-- (IBAction)cancel:(id)sender;
-- (IBAction)save:(id)sender;
+// Designated initializer.
+- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup;
+- (void)setObject:(id)inObject forKey:(id)key;
+- (id)objectForKey:(id)key;
+
+// Initializes and resets the default generic keychain item data.
+- (void)resetKeychainItem;
 
 @end

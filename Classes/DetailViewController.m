@@ -1,116 +1,95 @@
 /*
-
-===== IMPORTANT =====
-
-This is sample code demonstrating API, technology or techniques in development.
-Although this sample code has been reviewed for technical accuracy, it is not
-final. Apple is supplying this information to help you plan for the adoption of
-the technologies and programming interfaces described herein. This information
-is subject to change, and software implemented based on this sample code should
-be tested with final operating system software and final documentation. Newer
-versions of this sample code may be provided with future seeds of the API or
-technology. For information about updates to this and other developer
-documentation, view the New & Updated sidebars in subsequent documentation
-seeds.
-
-=====================
-
-File: DetailViewController.m
-Abstract: Controller for editing text view data.
-
-Version: 1.0
-
-Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple Inc.
-("Apple") in consideration of your agreement to the following terms, and your
-use, installation, modification or redistribution of this Apple software
-constitutes acceptance of these terms.  If you do not agree with these terms,
-please do not use, install, modify or redistribute this Apple software.
-
-In consideration of your agreement to abide by the following terms, and subject
-to these terms, Apple grants you a personal, non-exclusive license, under
-Apple's copyrights in this original Apple software (the "Apple Software"), to
-use, reproduce, modify and redistribute the Apple Software, with or without
-modifications, in source and/or binary forms; provided that if you redistribute
-the Apple Software in its entirety and without modifications, you must retain
-this notice and the following text and disclaimers in all such redistributions
-of the Apple Software.
-Neither the name, trademarks, service marks or logos of Apple Inc. may be used
-to endorse or promote products derived from the Apple Software without specific
-prior written permission from Apple.  Except as expressly stated in this notice,
-no other rights or licenses, express or implied, are granted by Apple herein,
-including but not limited to any patent rights that may be infringed by your
-derivative works or by other works in which the Apple Software may be
-incorporated.
-
-The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO
-WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
-WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE OR IN
-COMBINATION WITH YOUR PRODUCTS.
-
-IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, MODIFICATION AND/OR
-DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER UNDER THEORY OF
-CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF
-APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Copyright (C) 2008 Apple Inc. All Rights Reserved.
-
-*/
+ 
+ File: DetailViewController.h
+ 
+ Abstract: Controller for editing text view data.
+ 
+ Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
+ Apple Inc. ("Apple") in consideration of your agreement to the
+ following terms, and your use, installation, modification or
+ redistribution of this Apple software constitutes acceptance of these
+ terms.  If you do not agree with these terms, please do not use,
+ install, modify or redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software. 
+ Neither the name, trademarks, service marks or logos of Apple Inc. 
+ may be used to endorse or promote products derived from the Apple
+ Software without specific prior written permission from Apple.  Except
+ as expressly stated in this notice, no other rights or licenses, express
+ or implied, are granted by Apple herein, including but not limited to
+ any patent rights that may be infringed by your derivative works or by
+ other works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2008-2009 Apple Inc. All Rights Reserved.
+ 
+*/ 
 
 #import <Security/Security.h>
 
 #import "DetailViewController.h"
-#import "CommentsCell.h"
-#import "PasswordCell.h"
-#import "KeychainWrapper.h"
+#import "KeychainItemWrapper.h"
 #import "EditorController.h"
 
-#define kNameSectionIndex            0
-#define kPasswordSectionIndex        1
-#define kKindSectionIndex            2
-#define kAccountSectionIndex        3
-#define kWhereSectionIndex            4
-#define kCommentsSectionIndex        5
+enum {
+	kUsernameSection = 0,
+	kPasswordSection,
+	kAccountNumberSection,
+	kShowCleartextSection
+};
 
 // Defined UI constants.
-#define kTableRowHeight             40.0
-#define kCommentRowHeight           100.0
+static NSInteger kPasswordTag	= 2;	// Tag table view cells that contain a text field to support secure text entry.
 
 @implementation DetailViewController
 
-@synthesize tableView, textFieldController, textViewController, keychainWrapper;
+@synthesize tableView, textFieldController, passwordItem, accountNumberItem;
 
-+ (NSString *)titleForSectionWithIndex:(NSInteger)sectionIndex
++ (NSString *)titleForSection:(NSInteger)section
 {
-    switch (sectionIndex)
+    switch (section)
     {
-        case kNameSectionIndex: return @"Name";
-        case kPasswordSectionIndex: return @"Password";
-        case kKindSectionIndex: return @"Kind";
-        case kAccountSectionIndex: return @"Account";
-        case kWhereSectionIndex: return @"Where";
-        case kCommentsSectionIndex: return @"Comments";
+        case kUsernameSection: return NSLocalizedString(@"Username", @"");
+        case kPasswordSection: return NSLocalizedString(@"Password", @"");
+        case kAccountNumberSection: return NSLocalizedString(@"Account Number", @"");
     }
     return nil;
 }
 
-+ (id)secKeyForSectionWithIndex:(NSInteger)sectionIndex
++ (id)secAttrForSection:(NSInteger)section
 {
-    switch (sectionIndex)
+    switch (section)
     {
 #if TARGET_IPHONE_SIMULATOR
 #error This sample is designed to run on a device, not in the simulator. To run this sample, \
     choose Project > Set Active SDK > Device and connect a device. Then click Build and Go. 
 #else
-        case kNameSectionIndex: return (id)kSecAttrLabel;
-        case kPasswordSectionIndex: return (id)kSecValueData;
-        case kKindSectionIndex: return (id)kSecAttrDescription;
-        case kAccountSectionIndex: return (id)kSecAttrAccount;
-        case kWhereSectionIndex: return (id)kSecAttrService;
-        case kCommentsSectionIndex: return (id)kSecAttrComment;
+        case kUsernameSection: return (id)kSecAttrAccount;
+        case kPasswordSection: return (id)kSecValueData;
+        case kAccountNumberSection: return (id)kSecValueData;
 #endif
     }
     return nil;
@@ -131,8 +110,8 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     // Release allocated resources.
     [tableView release];
     [textFieldController release];
-    [textViewController release];
-    [keychainWrapper release];
+	[passwordItem release];
+	[accountNumberItem release];
     [super dealloc];
 }
 
@@ -141,13 +120,27 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     self.view.backgroundColor = [UIColor groupTableViewBackgroundColor];
 }
 
+- (void)switchAction:(id)sender
+{
+	UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:
+							 [NSIndexPath indexPathForRow:0 inSection:kPasswordSection]];
+	UITextField *textField = (UITextField *) [cell.contentView viewWithTag:kPasswordTag];
+	textField.secureTextEntry = ![sender isOn];
+	
+	cell = [self.tableView cellForRowAtIndexPath:
+			[NSIndexPath indexPathForRow:0 inSection:kAccountNumberSection]];
+	textField = (UITextField *) [cell.contentView viewWithTag:kPasswordTag];
+	textField.secureTextEntry = ![sender isOn];
+}
+
 // Action sheet delegate method.
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     // the user clicked one of the OK/Cancel buttons
     if (buttonIndex == 0)
     {
-        [keychainWrapper resetKeychainItem];
+        [passwordItem resetKeychainItem];
+        [accountNumberItem resetKeychainItem];
         [self.tableView reloadData];
     }
 }
@@ -179,8 +172,8 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tv
 {
-    // 6 sections, one for each property
-    return 6;
+    // 4 sections, one for each property and one for the switch
+    return 4;
 }
 
 - (NSInteger)tableView:(UITableView *)tv numberOfRowsInSection:(NSInteger)section
@@ -189,72 +182,130 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     return 1;
 }
 
-// Heigh required for each row - only the comments row differs from the others.
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
 {
-    return (indexPath.section == kCommentsSectionIndex) ? kCommentRowHeight : kTableRowHeight;
-}
-
-//- (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath
-//{
-//    return (self.editing) ? indexPath : nil;
-//}
-
-- (UITableViewCellAccessoryType)tableView:(UITableView *)tableView accessoryTypeForRowWithIndexPath:(NSIndexPath *)indexPath
-{
-    return (self.editing) ? UITableViewCellAccessoryDisclosureIndicator : UITableViewCellAccessoryNone;
+	return (section == kAccountNumberSection) ? 48.0 : 0.0;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    return [DetailViewController titleForSectionWithIndex:section];
+    return [DetailViewController titleForSection:section];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{        
-    Class cellClass = [UITableViewCell class];
-    NSString *reuseIdentifier = @"RegularCell";
-    if (indexPath.section == kCommentsSectionIndex)
-    {
-        cellClass = [CommentsCell class];
-        reuseIdentifier = @"CommentsCell";
-    }
-    else if (indexPath.section == kPasswordSectionIndex)
-    {
-        cellClass = [PasswordCell class];
-        reuseIdentifier = @"PasswordCell";
-    }
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-    if (cell == nil)
-    {
-        // Create a new cell. CGRectZero allows the cell to determine the appropriate size.
-        cell = [[[cellClass alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
-    }
-    cell.text = [keychainWrapper objectForKey:[DetailViewController secKeyForSectionWithIndex:indexPath.section]];
-    return cell;
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
+{
+    NSString *title = nil;
+	
+	if (section == kAccountNumberSection)
+	{
+		title = NSLocalizedString(@"AccountNumberShared", @"");
+	}
+	
+	return title;
 }
+
+// Customize the appearance of table view cells.
+- (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath 
+{
+	static NSString *kUsernameCellIdentifier =	@"UsernameCell";
+	static NSString *kPasswordCellIdentifier =	@"PasswordCell";
+	static NSString *kSwitchCellIdentifier =	@"SwitchCell";
+	
+	UITableViewCell *cell = nil;	
+	
+	switch (indexPath.section)
+	{
+		case kUsernameSection:
+		{
+			cell = [aTableView dequeueReusableCellWithIdentifier:kUsernameCellIdentifier];
+			if (cell == nil)
+			{
+				cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kUsernameCellIdentifier] autorelease];
+			}
+			
+			cell.textLabel.text = [passwordItem objectForKey:[DetailViewController secAttrForSection:indexPath.section]];
+			cell.accessoryType = (self.editing) ? UITableViewCellAccessoryDisclosureIndicator : UITableViewCellAccessoryNone;
+			
+			break;
+		}
+			
+		case kPasswordSection:
+		case kAccountNumberSection:
+		{
+			UITextField *textField = nil;
+			
+			cell = [aTableView dequeueReusableCellWithIdentifier:kPasswordCellIdentifier];
+			if (cell == nil)
+			{
+				cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kPasswordCellIdentifier] autorelease];
+
+				textField = [[UITextField alloc] initWithFrame:CGRectInset(cell.contentView.bounds, 10, 10)];
+				textField.tag = kPasswordTag;
+				textField.font = [UIFont systemFontOfSize:17.0];
+				
+				// prevent editing
+				textField.enabled = NO;
+				
+				// display contents as bullets rather than text
+				textField.secureTextEntry = YES;
+				
+				[cell.contentView addSubview:textField];
+			}
+			else {
+				textField = (UITextField *) [cell.contentView viewWithTag:kPasswordTag];
+			}
+			
+			KeychainItemWrapper *wrapper = (indexPath.section == kPasswordSection) ? passwordItem : accountNumberItem;
+			textField.text = [wrapper objectForKey:[DetailViewController secAttrForSection:indexPath.section]];
+			cell.accessoryType = (self.editing) ? UITableViewCellAccessoryDisclosureIndicator : UITableViewCellAccessoryNone;
+			
+			break;
+		}
+						
+		case kShowCleartextSection:
+		{
+			cell = [aTableView dequeueReusableCellWithIdentifier:kSwitchCellIdentifier];
+			if (cell == nil)
+			{
+				cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kSwitchCellIdentifier] autorelease];
+				
+				cell.textLabel.text = NSLocalizedString(@"Show Cleartext", @"");
+				cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+				UISwitch *switchCtl = [[[UISwitch alloc] initWithFrame:CGRectMake(194, 8, 94, 27)] autorelease];
+				[switchCtl addTarget:self action:@selector(switchAction:) forControlEvents:UIControlEventValueChanged];
+				[cell.contentView addSubview:switchCtl];
+			}
+			
+			break;
+		}
+	}
+    
+	return cell;
+}
+
 
 - (void)tableView:(UITableView *)aTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath 
 {    
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    id secKey = [DetailViewController secKeyForSectionWithIndex:indexPath.section];
-    EditorController *editorController = nil;
-    if (indexPath.section == kCommentsSectionIndex)
-    {
-        editorController = textViewController;
-    }
-    else
-    {
-        editorController = textFieldController;
-        [editorController.textControl setPlaceholder:[DetailViewController titleForSectionWithIndex:indexPath.section]];
-        [editorController.textControl setSecureTextEntry:(indexPath.section == kPasswordSectionIndex)];
-    }
-    editorController.keychainWrapper = keychainWrapper;    
-    editorController.textValue = [keychainWrapper objectForKey:secKey];
-    editorController.editedFieldKey = secKey;
-    editorController.title = [DetailViewController titleForSectionWithIndex:indexPath.section];
-    
-    [self.navigationController pushViewController:editorController animated:YES];
+	if (indexPath.section != kShowCleartextSection)
+	{
+		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+		id secAttr = [DetailViewController secAttrForSection:indexPath.section];
+		[textFieldController.textControl setPlaceholder:[DetailViewController titleForSection:indexPath.section]];
+		[textFieldController.textControl setSecureTextEntry:(indexPath.section == kPasswordSection || indexPath.section == kAccountNumberSection)];
+		if (indexPath.section == kUsernameSection || indexPath.section == kPasswordSection)
+		{
+			textFieldController.keychainItemWrapper = passwordItem;
+		}
+		else {
+			textFieldController.keychainItemWrapper = accountNumberItem;
+		}
+		textFieldController.textValue = [textFieldController.keychainItemWrapper objectForKey:secAttr];
+		textFieldController.editedFieldKey = secAttr;
+		textFieldController.title = [DetailViewController titleForSection:indexPath.section];
+		
+		[self.navigationController pushViewController:textFieldController animated:YES];
+	}
 }
 
 @end
