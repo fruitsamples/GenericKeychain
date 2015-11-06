@@ -4,17 +4,17 @@
 DESCRIPTION:
 
 This sample shows how to navigate through the Keychain Services API
-provided by the iPhone OS platform. Its demonstration leverages the Generic
+provided by iOS. Its demonstration leverages the Generic
 Keychain Item class and provides a template on how to successfully set up calls 
 to: SecItemAdd, SecItemCopyMatching, SecItemDelete, and SecItemUpdate.
 
 The user interface is a master-detail designed in Interface Builder, archived in the MainWindow nib.
-The user interface is modeled on a typical iPhone app preferences screen. 
+The user interface is modeled on a typical iOS app preferences screen. 
 
 The sample builds two separate applications from the same code base. Both applications
 have their own keychain item that stores a username and password. Both apps also share
 a second keychain item that stores an account number. This takes advantage
-of the shared keychain item capability added in iPhone OS 3.0.
+of the shared keychain item capability added in iOS 3.0.
 
 Testing:
 
@@ -30,15 +30,26 @@ Next, make GenericKeychain the active target and select Build and Go to run the 
 
 Finally, make GenericKeychain2 the active target and select Build and Go to run the second app GenericKeychain2.
 
+NOTE:
+
+Apps that are built for the simulator aren't signed, so there's no keychain access group
+for the simulator to check. This means that all keychain items are in the same default access group
+and all apps can see all keychain items when run on the simulator.
+
+If a SecItem contains an access group attribute, SecItemAdd and SecItemUpdate on the
+simulator will return -25243 (errSecNoAccessForItem).
+
+The sample is written to ignore the access group if built for the simulator.
+
 ================================================================================
 BUILD REQUIREMENTS:
 
-Mac OS X 10.5.6, Xcode 3.1.3, iPhone OS 3.0
+iOS 4 SDK
 
 ================================================================================
 RUNTIME REQUIREMENTS:
 
-Mac OS X 10.5.6, iPhone OS 3.0 (Device *Only*)
+iOS 3.2 or later
 
 ================================================================================
 PACKAGING LIST:
@@ -63,6 +74,9 @@ The nib file containing the main window and the view controllers used in the app
 ================================================================================
 CHANGES FROM PREVIOUS VERSIONS:
 
+Version 1.2
+	Fixed minor memory leak and upgraded project to build with the iOS 4 SDK.
+
 Version 1.1
     Adopted UITableView and UITableViewCell API for iPhone OS 3.0. Added support for
 	shared keychain items. 
@@ -70,4 +84,4 @@ Version 1.1
 Version 1.0
     N/A
 
-Copyright (c) 2008-2009 Apple Inc. All rights reserved.
+Copyright (c) 2008-2010 Apple Inc. All rights reserved.
